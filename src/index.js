@@ -13,7 +13,7 @@ const setupAndStartServer = () => {
     app.use(bodyParser.urlencoded({extended: true}));
     app.use('/api', apiRoutes);
 
-    app.listen(3002 , () => {
+    app.listen(PORT , () => {
         console.log(`Server started on port ${PORT}`);
         if(process.env.DB_SYNC) {
             db.sequelize.sync({alter: true});
