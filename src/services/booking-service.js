@@ -40,6 +40,11 @@ class BookingService {
             throw new ServiceError();
         }
     }
+
+
+    async updateBooking(bookingId, data) {
+        
+    }
 }
 
 module.exports = BookingService;
