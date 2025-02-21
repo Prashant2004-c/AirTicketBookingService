@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { BookingRepository } = require('../repository/index');
-const { flight_service_path } = require('../config/serverConfig');
+const { flight_service_path, get_user_path, send_mail_path, email_id } = require('../config/serverConfig');
 const { ServiceError } = require('../utils/errors');
 
 class BookingService {
@@ -27,10 +27,25 @@ class BookingService {
             const bookingPayload = {...data, totalCost};
             const booking = await this.bookingRepository.create(bookingPayload);
             const updateFlightRequestURL = `${flight_service_path}/api/v1/flights/${booking.flightId}`;
-            // console.log(getFlightRequestURL,'\n',updateFlightRequestURL);
-            // console.log(booking.flightId, flightId);
             await axios.patch(updateFlightRequestURL, {totalSeats: flightData.totalSeats - booking.noOfSeats});
             const finalBooking = await this.bookingRepository.update(booking.id, {status: 'Booked'});
+
+            // now trying to send mail after completing the booking
+
+            // first fetch the mail of the user
+            const userId = data.userId;
+            const getUserRequestURL = `${get_user_path}/api/v1/users/${userId}`;
+            const user_response = await axios.get(getUserRequestURL);
+            const user_data = user_response.data.data;
+            const user_email = user_data.email;
+            const mail_path_URL = `${send_mail_path}/api/v1/mails`;
+            const emailResponse = await axios.post(mail_path_URL, {
+                mailFrom: email_id,
+                mailTo: user_email,
+                mailSubject: 'Booking Confirmation',
+                mailBody: `Hello, your ticket  has been confirmed!`
+            });
+            console.log('Email service response:', emailResponse.data);
             return finalBooking;
 
         } catch (error) {
